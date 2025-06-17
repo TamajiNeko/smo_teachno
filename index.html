@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smo Techno</title>
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #f0f2f5;
+      color: #333;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    input[type="number"] {
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1em;
+      width: 250px;
+      max-width: 80%;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input[type="number"]:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+      outline: none;
+    }
+
+    button {
+      padding: 12px 25px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      background-color: #004085;
+      transform: translateY(0);
+    }
+
+    #result {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-size: 1.3em;
+      color: #555;
+      text-align: center;
+      min-width: 300px;
+      max-width: 90%;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+      input[type="number"] {
+        width: 100%;
+      }
+      button {
+        width: 75%;
+        padding: 15px;
+      }
+      #result {
+        font-size: 1.1em;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="https://ibb.co/qMZbck5q"><img src="https://i.ibb.co/Gvhg8cTY/Techno.png" alt="Techno" border="0" style="width: 200px;"></a>
+  <br>
+  <input type="number" id="studentID" placeholder="รหัสนักศึกษา">
+  <button onclick="checkStudent()">ตรวจสอบ</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function checkStudent() {
+      const inputID = document.getElementById("studentID").value.trim();
+      const resultDiv = document.getElementById("result");
+      resultDiv.textContent = "";
+
+      if (!inputID) {
+        resultDiv.textContent = "กรุณากรอกรหัสนักศึกษา";
+        resultDiv.style.color = '#dc3545';
+        document.body.style.backgroundColor = "white";
+        return;
+      }
+      resultDiv.style.color = '#555';
+
+
+      try {
+        const response = await fetch("assets/data.xlsx");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: "array" });
+
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        let found = false;
+
+        for (let i = 1; i < data.length; i++) {
+          const row = data[i];
+          if (row[0] && row[0].toString() === inputID) {
+            const colB = row[1] || "(ว่าง)";
+            const colC = row[2] || "(ว่าง)";
+            resultDiv.innerHTML = `ชื่อ: <b>${colB}</b><br>สี: <b>${colC}</b>`;
+            if (colC == "ดำ"){
+                document.body.style.backgroundColor = "#000000";
+            } else if (colC == "แดง"){
+                document.body.style.backgroundColor = "#dd191d";
+            } else if (colC == "ส้ม"){
+                document.body.style.backgroundColor = "#ff5722";
+            } else if (colC == "เหลือง"){
+                document.body.style.backgroundColor = "#ffeb3b";
+            } else if (colC == "เขียว"){
+                document.body.style.backgroundColor = "#259b24";
+            } else if (colC == "น้ำเงิน"){
+                document.body.style.backgroundColor = "#3f51b5";
+            } else if (colC == "ม่วง"){
+                document.body.style.backgroundColor = "#673ab7";
+            } else if (colC == "ชมพู"){
+                document.body.style.backgroundColor = "#e91e63";
+            }
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          resultDiv.textContent = "ไม่พบข้อมูลนักศึกษา";
+          resultDiv.style.color = '#dc3545';
+          document.body.style.backgroundColor = "white";
+        }
+
+      } catch (err) {
+        console.error("Error reading Excel:", err);
+        resultDiv.textContent = "เกิดข้อผิดพลาดในการอ่านไฟล์ หรือไม่พบไฟล์ข้อมูล";
+        resultDiv.style.color = '#dc3545';
+        document.body.style.backgroundColor = "white";
+      }
+    }
+  </script>
+</body>
+</html>
